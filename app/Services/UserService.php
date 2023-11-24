@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
 use Hash;
 use Illuminate\Http\JsonResponse;
@@ -26,5 +27,21 @@ class UserService
             'success' => true,
             'token' => $user->createToken('API Token')->plainTextToken,
         ]);
+    }
+
+    public function register(RegisterRequest $request): JsonResponse
+    {
+        $data = $request->validated();
+
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'token' => $user->createToken('API Token')->plainTextToken
+        ], 201);
     }
 }
