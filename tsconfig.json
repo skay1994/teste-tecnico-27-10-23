@@ -1,0 +1,17 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    },
+    {
+      "path": "./tsconfig.app.json"
+    }
+  ],
+  "compilerOptions": {
+    "lib": ["DOM", "ES2021.Promise"],
+    "paths": {
+      "@/*": ["./resources/js/*"],
+    }
+  }
+}
