@@ -1,0 +1,163 @@
+<?php
+
+use App\Models\Patient;
+use App\Models\PatientAddress;
+use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Laravel\Sanctum\Sanctum;
+use Tests\TestCase;
+
+it('Update a patient without address', function () {
+    /** @var TestCase $this */
+    $user = User::factory()->create();
+    $patient = Patient::factory()->create();
+    Sanctum::actingAs($user);
+
+    Storage::fake('public');
+
+    $file = UploadedFile::fake()->image('avatar.jpg');
+
+    $this->putJson(route('api.patients.update', [
+        'patient' => $patient->getKey()
+    ]), [
+        'document' => '903.232.740-21',
+        'cns' => '151 1000 4870 0002',
+        'name' => fake()->name(),
+        'mother_name' => fake()->firstNameFemale,
+        'birthdate' => fake()->date(max: '-30 years'),
+        'phone' => fake()->numerify('(##) #####-####'),
+        'photo' => $file,
+    ])->assertOk();
+
+    $this->assertDatabaseCount('patients', 1)
+        ->assertDatabaseHas('patients', [
+            'document' => '903.232.740-21'
+        ]);
+
+    Storage::disk()->assertExists($file->hashName());
+});
+
+it('Update a patient with address', function () {
+    /** @var TestCase $this */
+    $user = User::factory()->create();
+    $patient = Patient::factory()->has(PatientAddress::factory()->count(1), 'addresses')->create();
+    Sanctum::actingAs($user);
+
+    $oldZipcode = $patient->addresses->first()->zipcode;
+
+    Storage::fake('public');
+
+    $file = UploadedFile::fake()->image('avatar.jpg');
+
+    $zipcode = fake()->numerify('#####-###');
+    $this->putJson(route('api.patients.update', [
+        'patient' => $patient->getKey()
+    ]), [
+        'document' => '903.232.740-21',
+        'cns' => '151 1000 4870 0002',
+        'name' => fake()->name(),
+        'mother_name' => fake()->firstNameFemale,
+        'birthdate' => fake()->date(max: '-30 years'),
+        'phone' => fake()->numerify('(##) #####-####'),
+        'photo' => $file,
+        'address' => [
+            [
+                'zipcode' => $zipcode,
+                'city' => fake()->city,
+                'state' => fake()->word,
+                'neighborhood' => fake()->streetName,
+                'street' => fake()->streetName,
+                'number' => fake()->buildingNumber,
+                'complement' => fake()->word,
+            ]
+        ]
+    ])->assertOk();
+
+    $this->assertDatabaseCount('patients', 1)
+        ->assertDatabaseHas('patients', [
+            'document' => '903.232.740-21'
+        ]);
+
+    $this->assertDatabaseCount('patient_addresses', 1)
+        ->assertDatabaseHas('patient_addresses', [
+            'zipcode' => $zipcode
+        ])
+        ->assertDatabaseMissing('patient_addresses', [
+            'zipcode' => $oldZipcode
+        ]);
+
+    Storage::disk()->assertExists($file->hashName());
+});
+
+it('Update a patient fail by invalid fields', function () {
+    /** @var TestCase $this */
+    $user = User::factory()->create();
+    $patient = Patient::factory()->create();
+    Sanctum::actingAs($user);
+
+    Storage::fake('public');
+
+    $file = UploadedFile::fake()->image('avatar.jpg');
+
+    $response = $this->putJson(route('api.patients.update', [
+        'patient' => $patient->getKey()
+    ]), [
+        'document' => '300.587.430-41',
+        'cns' => '115 5328 0832 0001',
+        'name' => null,
+        'mother_name' => null,
+        'birthdate' => fake()->word,
+        'phone' => fake()->word,
+        'photo' => $file,
+    ])->assertUnprocessable();
+
+    $response->assertJsonValidationErrorFor('document')
+        ->assertJsonValidationErrorFor('cns')
+        ->assertJsonValidationErrorFor('name')
+        ->assertJsonValidationErrorFor('mother_name')
+        ->assertJsonValidationErrorFor('birthdate')
+        ->assertJsonValidationErrorFor('phone');
+});
+
+it('Update a patient with address fail by invalid fields', function () {
+    /** @var TestCase $this */
+    $user = User::factory()->create();
+    $patient = Patient::factory()->create();
+    Sanctum::actingAs($user);
+
+    Storage::fake('public');
+
+    $file = UploadedFile::fake()->image('avatar.jpg');
+
+    $response = $this->putJson(route('api.patients.update', [
+        'patient' => $patient->getKey()
+    ]), [
+        'document' => '903.232.740-21',
+        'cns' => '151 1000 4870 0002',
+        'name' => fake()->name(),
+        'mother_name' => fake()->firstNameFemale,
+        'birthdate' => fake()->date(max: '-30 years'),
+        'phone' => fake()->numerify('(##) #####-####'),
+        'photo' => $file,
+        'address' => [
+            [
+                'zipcode' => null,
+                'city' => null,
+                'state' => null,
+                'neighborhood' => null,
+                'street' => null,
+                'number' => null,
+                'complement' => null,
+            ]
+        ]
+    ])->assertUnprocessable();
+
+    $response->assertJsonValidationErrorFor('address.0.zipcode')
+        ->assertJsonValidationErrorFor('address.0.city')
+        ->assertJsonValidationErrorFor('address.0.state')
+        ->assertJsonValidationErrorFor('address.0.neighborhood')
+        ->assertJsonValidationErrorFor('address.0.street')
+        ->assertJsonValidationErrorFor('address.0.number');
+});
+
+
