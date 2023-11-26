@@ -16,7 +16,7 @@ class StorePatientRequest extends FormRequest
     {
         return [
             'document' => 'required|cpf|unique:patients',
-            'cns' => ['required', 'unique:patients', new CNS()],
+            'cns' => ['required', 'unique:patients', new CNS(), 'unique:patients'],
             'name' => 'required',
             'mother_name' => 'required',
             'birthdate' => 'required|date_format:Y-m-d',
