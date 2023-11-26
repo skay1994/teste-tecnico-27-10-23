@@ -1,10 +1,9 @@
 <?php
 
-use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\ViaCepController;
+use App\Http\Controllers\Auth\{LoginController, RegisterController, LogoutController};
 
 /*
 |--------------------------------------------------------------------------
@@ -24,6 +23,7 @@ Route::name('auth.')->prefix('auth')->group(function () {
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('auth/logout', LogoutController::class)->name('auth.logout');
+    Route::get('via-cep', ViaCepController::class)->name('via-cep');
 
     Route::prefix('user')->name('user.')->group(function () {
         Route::get('profile', [UserController::class, 'profile'])->name('profile');
