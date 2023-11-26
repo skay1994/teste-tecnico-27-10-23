@@ -26,9 +26,9 @@ class PatientController extends Controller
         return $this->service->store($request);
     }
 
-    public function update(UpdatePatientRequest $request, Patient $patient)
+    public function update(UpdatePatientRequest $request, Patient $patient): JsonResponse
     {
-        //
+        return $this->service->update($patient, $request);
     }
 
     public function destroy(Patient $patient)
