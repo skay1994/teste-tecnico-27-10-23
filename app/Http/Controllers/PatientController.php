@@ -23,7 +23,7 @@ class PatientController extends Controller
 
     public function store(StorePatientRequest $request): JsonResponse
     {
-        //
+        return $this->service->store($request);
     }
 
     public function update(UpdatePatientRequest $request, Patient $patient)
