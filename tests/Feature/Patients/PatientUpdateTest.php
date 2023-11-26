@@ -9,6 +9,9 @@ use Tests\TestCase;
 
 it('Update a patient without address', function () {
     /** @var TestCase $this */
+
+    Queue::fake();
+
     $user = User::factory()->create();
     $patient = Patient::factory()->create();
     Sanctum::actingAs($user);
@@ -39,6 +42,9 @@ it('Update a patient without address', function () {
 
 it('Update a patient with address', function () {
     /** @var TestCase $this */
+
+    Queue::fake();
+
     $user = User::factory()->create();
     $patient = Patient::factory()->has(PatientAddress::factory()->count(1), 'addresses')->create();
     Sanctum::actingAs($user);
@@ -91,6 +97,9 @@ it('Update a patient with address', function () {
 
 it('Update a patient fail by invalid fields', function () {
     /** @var TestCase $this */
+
+    Queue::fake();
+
     $user = User::factory()->create();
     $patient = Patient::factory()->create();
     Sanctum::actingAs($user);
@@ -121,6 +130,8 @@ it('Update a patient fail by invalid fields', function () {
 
 it('Update a patient with address fail by invalid fields', function () {
     /** @var TestCase $this */
+    Queue::fake();
+
     $user = User::factory()->create();
     $patient = Patient::factory()->create();
     Sanctum::actingAs($user);
@@ -160,4 +171,76 @@ it('Update a patient with address fail by invalid fields', function () {
         ->assertJsonValidationErrorFor('address.0.number');
 });
 
+it('Update a patient fail by document in use', function () {
+    /** @var TestCase $this */
 
+    Queue::fake();
+
+    $user = User::factory()->create();
+    $patient = Patient::factory()->create();
+    Sanctum::actingAs($user);
+
+    Patient::factory()->create([
+        'document' => '721.409.540-84'
+    ]);
+
+    Storage::fake('public');
+
+    $file = UploadedFile::fake()->image('avatar.jpg');
+
+    $response = $this->putJson(route('api.patients.update', [
+        'patient' => $patient->getKey()
+    ]), [
+        'document' => '721.409.540-84',
+        'cns' => '151 1000 4870 0002',
+        'name' => fake()->name(),
+        'mother_name' => fake()->firstNameFemale,
+        'birthdate' => fake()->date(max: '-30 years'),
+        'phone' => fake()->numerify('(##) #####-####'),
+        'photo' => $file,
+    ])->assertUnprocessable();
+
+    $response->assertJsonValidationErrorFor('document');
+});
+
+it('Update a patient fail by cns in use', function () {
+    /** @var TestCase $this */
+
+    Queue::fake();
+
+    $user = User::factory()->create();
+    $patient = Patient::factory()->create();
+    Sanctum::actingAs($user);
+
+    Patient::factory()->create([
+        'cns' => '233 6606 7320 0004'
+    ]);
+
+    Storage::fake('public');
+
+    $file = UploadedFile::fake()->image('avatar.jpg');
+
+    $response = $this->putJson(route('api.patients.update', [
+        'patient' => $patient->getKey()
+    ]), [
+        'document' => '721.409.540-84',
+        'cns' => '233 6606 7320 0004',
+        'name' => fake()->name(),
+        'mother_name' => fake()->firstNameFemale,
+        'birthdate' => fake()->date(max: '-30 years'),
+        'phone' => fake()->numerify('(##) #####-####'),
+        'photo' => $file,
+    ])->assertUnprocessable();
+
+    $response->assertJsonValidationErrorFor('cns');
+});
+
+it('Update a patient fail by not found', function () {
+    /** @var TestCase $this */
+    $user = User::factory()->create();
+    Sanctum::actingAs($user);
+
+    $this->putJson(route('api.patients.update', [
+        'patient' => 1111
+    ]))->assertNotFound();
+});
