@@ -18,12 +18,18 @@ const router = createRouter({
           return;
         }
         next()
+      },
+      meta: {
+        title: 'Pagina de Login'
       }
     },
     {
       path: '/register',
       name: 'register',
       component: RegisterView,
+      meta: {
+        title: 'Pagina de Cadastro'
+      }
     }
   ]
 })
@@ -50,11 +56,19 @@ async function checkValidToken(token?: string) {
 }
 
 router.beforeEach((to, from, next) => {
+  const titleFromParams = to.params?.pageTitle
+  const appName = import.meta.env.VITE_APP_NAME
   const requireAuth = to.matched.some((record) => record.meta.requiresAuth)
 
   if (requireAuth && !checkValidToken()) {
     next({name: 'login'})
     return
+  }
+
+  if (titleFromParams) {
+    document.title = `${titleFromParams} - ${document.title} - ${appName}`
+  } else {
+    document.title = `${to.meta?.title} - ${appName}` ?? appName
   }
 
   next()
