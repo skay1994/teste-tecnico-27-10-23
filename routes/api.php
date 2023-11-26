@@ -1,9 +1,11 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ViaCepController;
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\{LoginController, RegisterController, LogoutController};
+use App\Http\Controllers\PatientController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -28,4 +30,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('user')->name('user.')->group(function () {
         Route::get('profile', [UserController::class, 'profile'])->name('profile');
     });
+
+    Route::apiResource('patients', PatientController::class);
 });
