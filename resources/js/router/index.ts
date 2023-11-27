@@ -1,8 +1,57 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import axios from 'axios'
 import LoginView from "@/views/Auth/LoginView.vue";
 import RegisterView from '@/views/Auth/RegisterView.vue';
+import Dashboard from "@/components/Dashboard.vue";
 import { getItem, removeItem } from "@/helpers/localStorage";
+
+const dashboardRoutes: RouteRecordRaw[] = [
+  {
+    path: '',
+    name: 'home',
+    component: () => import('../views/HomeView.vue'),
+    meta: {
+      title: 'Home',
+      requiresAuth: true
+    }
+  },
+  {
+    path: 'patients',
+    name: 'patients',
+    meta: {
+      title: 'Lista de Pacientes',
+      requiresAuth: true
+    },
+    component: () => import('../views/Patients/ListView.vue')
+  },
+  {
+    path: 'patients/create',
+    name: 'patient-create',
+    meta: {
+      title: 'Criar Paciente',
+      requiresAuth: true
+    },
+    component: () => import('../views/Patients/CreateView.vue')
+  },
+  {
+    path: 'patients/update/:id',
+    name: 'patient-update',
+    meta: {
+      title: 'Atualizar Paciente',
+      requiresAuth: true
+    },
+    component: () => import('../views/Patients/UpdateView.vue')
+  },
+  {
+    path: 'patients/import-csv',
+    name: 'patient-import',
+    meta: {
+      title: 'Importar Pacientes',
+      requiresAuth: true
+    },
+    component: () => import('../views/Patients/ImportView.vue')
+  }
+]
 
 const router = createRouter({
   history: createWebHistory('/'),
@@ -30,7 +79,17 @@ const router = createRouter({
       meta: {
         title: 'Pagina de Cadastro'
       }
-    }
+    },
+    {
+      path: '/dashboard',
+      component: Dashboard,
+      meta: {
+        requiresAuth: true
+      },
+      children: [
+        ...dashboardRoutes
+      ]
+    },
   ]
 })
 
