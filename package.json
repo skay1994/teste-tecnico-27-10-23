@@ -20,6 +20,7 @@
     },
     "dependencies": {
         "@kyvg/vue3-notification": "^3.0.2",
+        "maska": "^2.1.10",
         "vue": "^3.3.9",
         "vue-router": "^4.2.5"
     }
