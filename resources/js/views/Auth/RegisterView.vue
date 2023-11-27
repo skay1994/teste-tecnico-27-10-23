@@ -40,7 +40,7 @@ function register() {
             text: 'Sua conta foi criada com sucesso!',
         })
         console.log(res);
-        // push({ name: 'home' })
+        push({ name: 'home' })
     }).catch(error => {
         notify({
             title: 'Ocorreu um erro',
