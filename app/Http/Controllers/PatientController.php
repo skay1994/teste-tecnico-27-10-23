@@ -6,6 +6,7 @@ use App\Http\Requests\ImportCSVRequest;
 use App\Http\Requests\StorePatientRequest;
 use App\Http\Requests\UpdatePatientRequest;
 use App\Http\Resources\PatientCollection;
+use App\Http\Resources\PatientResource;
 use App\Models\Patient;
 use App\Services\PatientService;
 use Illuminate\Http\JsonResponse;
@@ -23,6 +24,12 @@ class PatientController extends Controller
     public function index(Request $request): PatientCollection
     {
         return $this->service->index($request);
+    }
+
+    public function show(Patient $patient): JsonResponse
+    {
+        $patient->load('addresses');
+        return response()->json(new PatientResource($patient));
     }
 
     public function store(StorePatientRequest $request): JsonResponse
