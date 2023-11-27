@@ -17,6 +17,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', static function () {
     return view('single_app');
 });
-Route::get('/{any}', static function () {
+Route::fallback(static function () {
     return view('single_app');
 });
