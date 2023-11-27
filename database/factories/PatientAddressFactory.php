@@ -17,13 +17,13 @@ class PatientAddressFactory extends Factory
     public function definition(): array
     {
         return [
-            'zipcode' => $this->faker->address,
+            'zipcode' => $this->faker->numerify('#####-###'),
             'street' => $this->faker->word,
             'number' => $this->faker->numerify,
-            'complement' => $this->faker->address,
-            'neighborhood' => $this->faker->address,
+            'complement' => $this->faker->word,
+            'neighborhood' => $this->faker->word,
             'city' => $this->faker->city,
-            'state' => $this->faker->address
+            'state' => $this->faker->word
         ];
     }
 }
