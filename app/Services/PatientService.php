@@ -6,10 +6,12 @@ use App\Http\Requests\ImportCSVRequest;
 use App\Http\Requests\StorePatientRequest;
 use App\Http\Requests\UpdatePatientRequest;
 use App\Http\Resources\PatientCollection;
+use App\Http\Resources\PatientListResource;
 use App\Http\Resources\PatientResource;
 use App\Jobs\ImportPatientJob;
 use App\Models\Patient;
 use Arr;
+use Cache;
 use Elasticsearch\Client;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -50,7 +52,7 @@ class PatientService
                 ->sortBy(fn($patient) => array_search($patient->getKey(), $ids));
 
             $paginator = new LengthAwarePaginator(
-                PatientResource::collection($patients),
+                PatientListResource::collection($patients),
                 $search['hits']['total']['value'], $perPage
             );
 
@@ -64,7 +66,7 @@ class PatientService
     {
         $patient = Patient::create($request->safe()->except('address', 'photo'));
 
-        $photo = $request->file('photo')->store();
+        $photo = $request->file('photo')->store('patients', 'public');
 
         $patient->update([
             'photo' => $photo
@@ -74,6 +76,8 @@ class PatientService
             $addresses = $request->get('address');
             $patient->addresses()->createMany($addresses);
         }
+
+        Cache::forget('total_patients');
 
         return response()->json(new PatientResource($patient), 201);
     }
@@ -86,9 +90,11 @@ class PatientService
             Storage::delete($patient->photo);
         }
 
-        $photo = $request->file('photo')->store();
+        if($request->hasFile('photo')) {
+            $photo = $request->file('photo')->store('patients', 'public');
 
-        $patient->photo = $photo;
+            $patient->photo = $photo;
+        }
         $patient->save();
 
         if ($request->has('address')) {
@@ -102,13 +108,17 @@ class PatientService
 
     public function destroy(Patient $patient): void
     {
+        Cache::forget('total_patients');
+
         $patient->addresses()->delete();
         $patient->delete();
     }
 
     public function importCSV(ImportCSVRequest $request)
     {
-        $filePath = $request->file('file')->store('public/temp/csv');
+        $file = $request->file('file');
+        $filePath = $file->storeAs('public/temp/csv', $file->getClientOriginalName());
+
         $path = storage_path('app/'.$filePath);
 
         (new FastExcel)->import($path, fn(array $line) => ImportPatientJob::dispatch($line));
