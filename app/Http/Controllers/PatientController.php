@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ImportCSVRequest;
 use App\Http\Requests\StorePatientRequest;
 use App\Http\Requests\UpdatePatientRequest;
 use App\Http\Resources\PatientCollection;
@@ -38,5 +39,10 @@ class PatientController extends Controller
     {
         $this->service->destroy($patient);
         return response()->noContent();
+    }
+
+    public function importCSV(ImportCSVRequest $request): JsonResponse
+    {
+        return $this->service->importCSV($request);
     }
 }

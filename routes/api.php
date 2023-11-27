@@ -32,4 +32,5 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::apiResource('patients', PatientController::class);
+    Route::post('patients/import-csv', [PatientController::class, 'importCSV'])->name('patients.import-csv');
 });
