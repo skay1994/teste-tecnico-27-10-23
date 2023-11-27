@@ -17,10 +17,10 @@ class PatientResource extends JsonResource
             'id' => $this->getKey(),
             'document' => $this->document,
             'cns' => $this->cns,
-            'photo' => Str::startsWith($this->photo, 'http') ? $this->photo : Storage::url($this->photo),
+            'photo' => Str::startsWith($this->photo, 'http') ? $this->photo : url(Storage::url($this->photo)),
             'name' => $this->name,
             'mother_name' => $this->mother_name,
-            'birthdate' => $this->birthdate,
+            'birthdate' => $this->birthdate->format('Y-m-d'),
             'phone' => $this->phone,
             'addresses' => PatientAddressResource::collection($this->whenLoaded('addresses')),
         ];
