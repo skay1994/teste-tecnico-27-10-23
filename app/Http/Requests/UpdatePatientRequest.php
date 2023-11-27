@@ -27,7 +27,7 @@ class UpdatePatientRequest extends FormRequest
 
         return [
             'document' => ['required', 'cpf', Rule::unique('patients')->ignore($id)] ,
-            'cns' => ['required', 'unique:patients', new CNS(), Rule::unique('patients')->ignore($id)],
+            'cns' => ['required', new CNS(), Rule::unique('patients')->ignore($id)],
             'name' => 'required',
             'mother_name' => 'required',
             'birthdate' => 'required|date_format:Y-m-d',
@@ -40,7 +40,7 @@ class UpdatePatientRequest extends FormRequest
             'address.*.street' => 'required',
             'address.*.number' => 'required',
             'address.*.complement' => 'nullable',
-            'photo' => 'required|image',
+            'photo' => 'nullable|image',
         ];
     }
 }
