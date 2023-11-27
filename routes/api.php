@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ViaCepController;
 use Illuminate\Support\Facades\Route;
@@ -33,4 +34,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('patients', PatientController::class);
     Route::post('patients/import-csv', [PatientController::class, 'importCSV'])->name('patients.import-csv');
+
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
 });
