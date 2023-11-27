@@ -2,16 +2,19 @@
 
 namespace App\Services;
 
+use App\Http\Requests\ImportCSVRequest;
 use App\Http\Requests\StorePatientRequest;
 use App\Http\Requests\UpdatePatientRequest;
 use App\Http\Resources\PatientCollection;
 use App\Http\Resources\PatientResource;
+use App\Jobs\ImportPatientJob;
 use App\Models\Patient;
 use Arr;
 use Elasticsearch\Client;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Rap2hpoutre\FastExcel\FastExcel;
 use Storage;
 
 class PatientService
@@ -101,5 +104,42 @@ class PatientService
     {
         $patient->addresses()->delete();
         $patient->delete();
+    }
+
+    public function importCSV(ImportCSVRequest $request)
+    {
+        $filePath = $request->file('file')->store('public/temp/csv');
+        $path = storage_path('app/'.$filePath);
+
+        (new FastExcel)->import($path, fn(array $line) => ImportPatientJob::dispatch($line));
+
+        unlink($path);
+
+        return response()->json();
+    }
+
+    public function exportCSV()
+    {
+        $patients = Patient::limit(10)->get();
+        $patients = $patients->map(function (Patient $patient) {
+            $address = $patient->addresses->first();
+            return [
+                'document' => $patient->document,
+                'cns' => $patient->cns,
+                'name' => $patient->name,
+                'mother_name' => $patient->mother_name,
+                'birthdate' => $patient->birthdate,
+                'phone' => $patient->phone,
+                'address_zipcode' => $address->zipcode,
+                'address_street' => $address->street,
+                'address_number' => $address->number,
+                'address_neighborhood' => $address->neighborhood,
+                'address_complement' => $address->complement,
+                'address_city' => $address->city,
+                'address_state' => $address->state,
+            ];
+        });
+
+        return (new FastExcel($patients))->export(public_path('patients.csv'));
     }
 }
