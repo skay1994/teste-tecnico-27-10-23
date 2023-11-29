@@ -21,6 +21,12 @@ Aplicação: [http//localhost:8000]()
 
 Horizon: [http//localhost:8000/horizon]()
 
+
+## Usuário
+
+Email: test@example.com
+Senha: password
+
 ## Uso
 
 Rodar containers dockers
@@ -40,6 +46,12 @@ $ composer install
 Reiniciar containers para remover os erros do supervisor da ausencia das dependencias do composer
 
 -
+
+Rodar as migrations com os seeders para gerar o banco de dados 
+
+```bash
+$ php artisan migrate --seed
+```
 
 Instalar dependencias npm
 
